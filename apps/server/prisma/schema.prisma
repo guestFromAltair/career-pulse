@@ -1,15 +1,120 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum ApplicationStatus {
+  WISHLIST
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+  GHOSTED
+}
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+enum ExperienceLevel {
+  JUNIOR
+  MID
+  SENIOR
+  STAFF
+  PRINCIPAL
+}
+
+model User {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  password     String
+  firstName    String
+  lastName     String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  applications JobApplication[]
+
+  @@map("users")
+}
+
+model JobApplication {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  company         String
+  role            String
+  jobUrl          String?
+  jobDescription  String?           @db.Text
+  location        String?
+  workMode        WorkMode          @default(REMOTE)
+  experienceLevel ExperienceLevel?
+  salaryMin       Int?
+  salaryMax       Int?
+  currency        String            @default("USD")
+  status          ApplicationStatus @default(APPLIED)
+  appliedAt       DateTime?
+  followUpAt      DateTime?
+  responseAt      DateTime?
+  excitement      Int               @default(3)
+  referral        Boolean           @default(false)
+  referralContact String?
+  source          String?
+  notes           String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  interviewStages InterviewStage[]
+  activities      Activity[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([followUpAt])
+  @@map("job_applications")
+}
+
+model InterviewStage {
+  id String @id @default(cuid())
+
+  applicationId String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  stageName       String
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  interviewerName String?
+  interviewerRole String?
+  format          String?
+  notes           String?   @db.Text
+  outcome         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([applicationId])
+  @@map("interview_stages")
+}
+
+model Activity {
+  id String @id @default(cuid())
+
+  applicationId String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([applicationId])
+  @@map("activities")
 }
