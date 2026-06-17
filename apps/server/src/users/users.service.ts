@@ -32,6 +32,7 @@ export class UsersService {
         });
 
         this.logger.log(`New user created: ${user.email} (${user.id})`);
+
         return user;
     }
 
