@@ -13,15 +13,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         private readonly configService: ConfigService,
         private readonly usersService: UsersService,
     ) {
-        const secret = configService.get<string>('jwt.secret');
-        if (!secret) {
-            throw new Error('FATAL: jwt.secret environment variable is missing!');
-        }
-
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: secret
+            secretOrKey: configService.getOrThrow<string>('jwt.secret')
         });
     }
 
@@ -29,6 +24,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         this.logger.debug(`JWT validated for user: ${payload.sub}`);
 
         const user = await this.usersService.findById(payload.sub);
+        if (!user) {
+            throw new UnauthorizedException();
+        }
 
         return this.usersService.sanitize(user);
     }
