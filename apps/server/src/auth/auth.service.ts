@@ -53,8 +53,8 @@ export class AuthService {
             user: {
                 ...user,
                 createdAt: (user.createdAt as unknown as Date).toISOString(),
-                updatedAt: (user.updatedAt as unknown as Date).toISOString(),
-            },
+                updatedAt: (user.updatedAt as unknown as Date).toISOString()
+            }
         };
     }
 

@@ -3,6 +3,8 @@ import {ConfigModule} from '@nestjs/config';
 import {ScheduleModule} from '@nestjs/schedule';
 import {PrismaModule} from './prisma/prisma.module';
 import configuration from './config/configuration';
+import {UsersModule} from "./users/users.module";
+import {AuthModule} from "./auth/auth.module";
 
 @Module({
     imports: [
@@ -11,7 +13,9 @@ import configuration from './config/configuration';
             load: [configuration]
         }),
         ScheduleModule.forRoot(),
-        PrismaModule
+        PrismaModule,
+        UsersModule,
+        AuthModule
     ]
 })
 export class AppModule {
